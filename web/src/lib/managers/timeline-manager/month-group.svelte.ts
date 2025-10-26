@@ -161,7 +161,7 @@ export class MonthGroup {
     };
   }
 
-  addAssets(bucketAssets: TimeBucketAssetResponseDto) {
+  addAssets(bucketAssets: TimeBucketAssetResponseDto, preSorted: boolean) {
     const addContext = new GroupInsertionCache();
     for (let i = 0; i < bucketAssets.id.length; i++) {
       const { localDateTime, fileCreatedAt } = getTimes(
@@ -202,17 +202,17 @@ export class MonthGroup {
       }
       this.addTimelineAsset(timelineAsset, addContext);
     }
+    if (!preSorted) {
+      for (const group of addContext.existingDayGroups) {
+        group.sortAssets(this.#sortOrder);
+      }
 
-    for (const group of addContext.existingDayGroups) {
-      group.sortAssets(this.#sortOrder);
+      if (addContext.newDayGroups.size > 0) {
+        this.sortDayGroups();
+      }
+
+      addContext.sort(this, this.#sortOrder);
     }
-
-    if (addContext.newDayGroups.size > 0) {
-      this.sortDayGroups();
-    }
-
-    addContext.sort(this, this.#sortOrder);
-
     return addContext.unprocessedAssets;
   }
 
